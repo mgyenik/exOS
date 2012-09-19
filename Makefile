@@ -1,22 +1,21 @@
-#SRCS = #start.c main.c 
-ASMSRCS = start.S
+SRCS = clock.c main.c
+ASMSRCS = boot.S
 LD_SCRIPT = stm-baremetal.ld
 
-TARGET=main
+TARGET=out
 
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 LD=arm-none-eabi-ld
 
-CFLAGS  = -g3 -c -Wall --std=gnu99
+CFLAGS  = -g3 -c -Wall --std=gnu99 -O2
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4 -mthumb-interwork
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostdlib -ffreestanding
-CFLAGS += -save-temps
 
-#OBJS = $(SRCS:.c=.o)
 OBJS = $(ASMSRCS:.S=.o)
+OBJS += $(SRCS:.c=.o)
 
-.PHONY: proj
+.PHONY: clean proj
 
 all: proj
 
@@ -27,6 +26,7 @@ burn:
 
 .c.o:
 	$(CC) $(CFLAGS) $*.c
+
 .S.o:
 	$(CC) $(CFLAGS) $*.S
 
@@ -35,7 +35,7 @@ proj: 	$(TARGET).elf
 $(TARGET).elf: $(OBJS)
 	$(LD) -T$(LD_SCRIPT) $(OBJS) -o $(TARGET).elf
 	$(OBJCOPY) -O ihex $(TARGET).elf $(TARGET).hex
-	$(OBJCOPY) -O binary $(TARGET).elf $(TARGET).bin
+	$(OBJCOPY) -j flash -O binary $(TARGET).elf $(TARGET).bin
 
 clean:
 	rm -f *.o *.i *.s
