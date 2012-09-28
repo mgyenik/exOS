@@ -6,14 +6,6 @@
 typedef unsigned long uint32_t;
 typedef unsigned int uint16_t;
 
-extern const uint32_t _skernel;
-extern const uint32_t _ekernel;
-
-/* Board specific */
-#define MPU6000_CS          10
-
-/* Make a SVC call */
-#define _svc(x)     asm volatile ("svc  %0  \n" :: "i" (x))
 /* Memory Map */
 #define FLASH_BASE          (uint32_t) (0x08000000)                     /* Flash Memory Base Address */
 #define RAM_BASE            (uint32_t) (0x20000000)                     /* RAM Base Address */
@@ -48,7 +40,6 @@ extern const uint32_t _ekernel;
 #define PORTB_AHBEN         1
 #define GPIOB_AFRH          *(volatile uint32_t *) (GPIOB_BASE + 0x24)
 #define GPIOE_MODER         *(volatile uint32_t *) (GPIOE_BASE + 0x00)  /* Port E mode register */
-#define MPLED_ODR           *(volatile uint32_t *) (GPIOE_BASE + 0x14)  /* LED Output Data Register */
 #define GPIOE_ODR           MPLED_ODR
 #define RED                 14
 /* USART 2 */

@@ -26,6 +26,7 @@ tcb current_task = {
 */
 
 tcb* curr_task = NULL;
+unsigned char switching = 0;
 
 void restore_partial_context(tcb* task) {
     asm volatile("\
@@ -51,13 +52,20 @@ void save_partial_context(tcb* task) {
 
 void os_start(void) {
     init_region_as_dmem(&_sheap, &_eheap);
-    curr_task = create_context(main);
+    curr_task = create_context((void(*)(void))main);
     init_systick();
-    
+    while(1){};    
     //main();
 }
 
 void os_tick(void) {
+    if(!switching) {
+        if(curr_task != NULL) {
+            restore_partial_context(curr_task);
+            MSP_RESTORE(curr_task)
+            asm("bx lr");
+        }
+    }
     MSP_SAVE(curr_task)
     save_partial_context(curr_task);
     restore_partial_context(curr_task);
@@ -73,13 +81,13 @@ tcb* create_context(void(*func)(void)) {
     new_tcb->stack_limit = new_stack;
     uint32_t reg_default = 0;
     uint32_t xpsr_default = 0x01000000;
-    PUSH(new_tcb->stack_top, xpsr_default)
-    PUSH(new_tcb->stack_top, func)
-    PUSH(new_tcb->stack_top, func)
-    PUSH(new_tcb->stack_top, new_tcb->stack_base)
-    PUSH(new_tcb->stack_top, reg_default)
-    PUSH(new_tcb->stack_top, reg_default)
-    PUSH(new_tcb->stack_top, reg_default)
-    PUSH(new_tcb->stack_top, reg_default)
+    *new_tcb->stack_top-- = xpsr_default;
+    *new_tcb->stack_top-- = (uint32_t)func;
+    *new_tcb->stack_top-- = (uint32_t)func;
+    *new_tcb->stack_top-- = (uint32_t)new_tcb->stack_base;
+    *new_tcb->stack_top-- = reg_default;
+    *new_tcb->stack_top-- = reg_default;
+    *new_tcb->stack_top-- = reg_default;
+    *new_tcb->stack_top-- = reg_default;
     return new_tcb;
 }

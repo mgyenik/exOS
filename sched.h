@@ -10,12 +10,6 @@
        ::[task_sp] "l" (&task->stack_top)   \
        :"memory");
 
-#define PUSH(stack, val) asm("          \
-        str %[v], [%[s]], #-4   \r\n    \
-        "                               \
-        ::[s] "l" (stack), [v] "l" (val)\
-        :"memory");
-
 typedef struct partial_context {
     uint32_t r4;
     uint32_t r5;
@@ -38,3 +32,4 @@ typedef struct tcb {
 void restore_partial_context(tcb* task);
 void save_partial_context(tcb* task);
 void os_tick(void) __attribute__((naked));
+tcb* create_context(void(*func)(void));

@@ -27,16 +27,13 @@ SECTIONS {
         . = ALIGN(4);
         _erodata = .;
     } > FLASH
-    .data :
+    ram :
     {
         . = ALIGN(4);
         _sdata = .;        /* create a global symbol at data start */
         *(.data*)
         . = ALIGN(4);
         _edata = .;        /* define a global symbol at data end */
-    } > CCMRAM
-    .bss :
-    {
         . = ALIGN(4);
         _sbss = .;         /* define a global symbol at bss start */
         *(.bss*)

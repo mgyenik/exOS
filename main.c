@@ -12,7 +12,6 @@ void init_led(void){
 
 int main(void){
     init_led();
-    init_region_as_dmem(&_sheap, &_eheap);
     char* data = alloc(4);
     data[0] = 1;
     data[1] = 0x11;

@@ -19,7 +19,7 @@
 .word oh_god
 .word oh_god
 .word oh_god
-.word oh_god
+.word os_tick
 
 .section .text
 .thumb
@@ -33,9 +33,8 @@ oh_god:
 reset:
     bl cstart
     bl clocks
-    bl main
+    bl os_start
     b oh_god
-
 
 .thumb_func
 .type cstart, %function

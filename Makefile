@@ -1,4 +1,4 @@
-SRCS = clock.c main.c mem.c
+SRCS = clock.c main.c mem.c systick.c sched.c
 ASMSRCS = boot.S
 LD_SCRIPT = stm-baremetal.ld
 
