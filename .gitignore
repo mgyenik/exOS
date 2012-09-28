@@ -1,0 +1,6 @@
+tags
+*.s
+*.hex
+*.o
+*.bin
+*.elf
