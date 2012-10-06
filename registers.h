@@ -42,6 +42,8 @@ typedef unsigned int uint16_t;
 #define GPIOE_MODER         *(volatile uint32_t *) (GPIOE_BASE + 0x00)  /* Port E mode register */
 #define GPIOE_ODR           MPLED_ODR
 #define RED                 14
+#define BLUE                15
+#define GREEN               12
 /* USART 2 */
 #define USART2_SR           *(volatile uint32_t *) (USART2_BASE + 0x00)
 #define USART2_DR           *(volatile uint32_t *) (USART2_BASE + 0x04)

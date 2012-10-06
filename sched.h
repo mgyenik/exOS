@@ -28,8 +28,14 @@ typedef struct tcb {
     partial_context saved_partial_context;
 } tcb;
 
+typedef struct tcb_node {
+    struct tcb_node* next;
+    tcb* task;
+} tcb_node;
+
 
 void restore_partial_context(tcb* task);
 void save_partial_context(tcb* task);
 void os_tick(void) __attribute__((naked));
 tcb* create_context(void(*func)(void));
+

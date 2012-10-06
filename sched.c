@@ -9,7 +9,17 @@ extern uint32_t _eheap;
 
 #define STACK_SIZE 100
 
-tcb* curr_task = NULL;
+
+struct task_list {
+    tcb_node* head;
+    tcb_node* tail;
+} tlist = {
+    .head = NULL,
+    .tail = NULL
+};
+
+tcb_node* curr_task = NULL;
+
 unsigned char switching = 0;
 
 void restore_partial_context(tcb* task) {
@@ -36,25 +46,43 @@ void save_partial_context(tcb* task) {
 
 void os_start(void) {
     init_region_as_dmem(&_sheap, &_eheap);
-    curr_task = create_context((void(*)(void))(&main));
+    init_leds();
+
+    curr_task = (tcb_node*)alloc(sizeof(tcb_node));
+    curr_task->task = (tcb*)create_context(&blink1);
+    tlist.head = curr_task;
+
+    curr_task = (tcb_node*)alloc(sizeof(tcb_node));
+    curr_task->task = (tcb*)create_context(&blink2);
+    tlist.tail = curr_task;
+
+    tlist.head->next = tlist.tail;
+    tlist.tail->next = tlist.head;
     init_systick();
     while(1){};    
-    //main();
 }
 
 void os_tick(void) {
+    /* Ghettohax since yield isn't implemented yet */
     if(!switching) {
         if(curr_task != NULL) {
             switching = 1;
-            restore_partial_context(curr_task);
-            MSP_RESTORE(curr_task)
+            restore_partial_context(curr_task->task);
+            MSP_RESTORE(curr_task->task)
             asm("bx lr");
         }
     }
-    MSP_SAVE(curr_task)
-    save_partial_context(curr_task);
-    restore_partial_context(curr_task);
-    MSP_RESTORE(curr_task)
+    /* </ghettohax> */
+
+    MSP_SAVE(curr_task->task)
+    save_partial_context(curr_task->task);
+    
+    /* Scheduling algorithm. WARNING: VERY COMPLICATED! */
+    curr_task = curr_task->next; 
+    /* </Scheduling algorithm> */
+
+    restore_partial_context(curr_task->task);
+    MSP_RESTORE(curr_task->task)
     asm("bx lr");
 }
 
@@ -73,6 +101,6 @@ tcb* create_context(void(*func)(void)) {
     *new_tcb->stack_top-- = reg_default + 3;
     *new_tcb->stack_top-- = reg_default + 2;
     *new_tcb->stack_top-- = reg_default + 1;
-    *new_tcb->stack_top = reg_default + 0xa;
+    *new_tcb->stack_top = reg_default;
     return new_tcb;
 }
