@@ -1,6 +1,7 @@
 #include "registers.h"
 #include "main.h"
 #include "mem.h"
+#include "sched.h"
 
 extern uint32_t _sheap;
 extern uint32_t _eheap;
@@ -11,14 +12,10 @@ void init_leds(void){
 }
 
 void main(void){
-    init_leds();
-    char* data = alloc(4);
-    data[0] = 1;
-    data[1] = 0x11;
-    data[3] = 0x44;
+    task_create(&blink1, 0);
+    task_create(&blink2, 0);
     while(1){
-        LED_ODR |= (data[0] << RED);
-        LED_ODR &= ~(1 << RED);
+        asm volatile("nop");
     }
 }
 

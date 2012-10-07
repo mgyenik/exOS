@@ -24,8 +24,8 @@ unsigned char switching = 0;
 
 void restore_partial_context(tcb* task) {
     asm volatile("\
-            add     %[task_addr], %[task_addr], %[context_offset] \r\n\
-            ldmia   %[task_addr], {r4,r5,r6,r7,r8,r9,r10,r11}     \r\n\
+            add     %[task_addr], %[task_addr], %[context_offset]   \r\n\
+            ldmia   %[task_addr], {r4-r11}                          \r\n\
         "
         :[task_addr] "+l" (task)
         :[context_offset] "I" (__builtin_offsetof(tcb, saved_partial_context))
@@ -35,8 +35,8 @@ void restore_partial_context(tcb* task) {
 
 void save_partial_context(tcb* task) {
     asm volatile("\
-            add     %[task_addr], %[task_addr], %[context_offset] \r\n\
-            stmia   %[task_addr], {r4,r5,r6,r7,r8,r9,r10,r11} \r\n\
+            add     %[task_addr], %[task_addr], %[context_offset]   \r\n\
+            stmia   %[task_addr], {r4-r11}                          \r\n\
         "
         :[task_addr] "+l" (task)
         :[context_offset] "I" (__builtin_offsetof(tcb, saved_partial_context))
@@ -45,19 +45,18 @@ void save_partial_context(tcb* task) {
 }
 
 void os_start(void) {
+    /* Initialize heap so you can have dynamic memory allocation */
     init_region_as_dmem(&_sheap, &_eheap);
+
+    /*Hardware/peripherals setup */
     init_leds();
 
-    curr_task = (tcb_node*)alloc(sizeof(tcb_node));
-    curr_task->task = (tcb*)create_context(&blink1);
-    tlist.head = curr_task;
+    /* Startup task switching with the main user task, and make task list circular */
+    tlist.head = create_task_node(&main, 0);
+    tlist.head->next = tlist.head;
 
-    curr_task = (tcb_node*)alloc(sizeof(tcb_node));
-    curr_task->task = (tcb*)create_context(&blink2);
-    tlist.tail = curr_task;
-
-    tlist.head->next = tlist.tail;
-    tlist.tail->next = tlist.head;
+    /* Now we make curr_task valid, start the systick, and wait.... */
+    curr_task = tlist.head;
     init_systick();
     while(1){};    
 }
@@ -76,7 +75,7 @@ void os_tick(void) {
 
     MSP_SAVE(curr_task->task)
     save_partial_context(curr_task->task);
-    
+
     /* Scheduling algorithm. WARNING: VERY COMPLICATED! */
     curr_task = curr_task->next; 
     /* </Scheduling algorithm> */
@@ -86,7 +85,7 @@ void os_tick(void) {
     asm("bx lr");
 }
 
-tcb* create_context(void(*func)(void)) {
+tcb* create_task(void(*func)(void)) {
     tcb* new_tcb = alloc(sizeof(tcb));
     uint32_t* new_stack = alloc(STACK_SIZE);
     new_tcb->stack_top = (uint32_t*)((uint32_t)new_stack + 100);
@@ -103,4 +102,22 @@ tcb* create_context(void(*func)(void)) {
     *new_tcb->stack_top-- = reg_default + 1;
     *new_tcb->stack_top = reg_default;
     return new_tcb;
+}
+
+void task_create(void(*func)(void), uint32_t jiffies) {
+    task_insert(tlist.head, create_task_node(func, jiffies));
+}
+
+tcb_node* create_task_node(void(*func)(void), uint32_t jiffies) {
+    tcb_node* tmp_task_node = (tcb_node*)alloc(sizeof(tcb_node));
+    tmp_task_node->task = (tcb*)create_task(func);
+    tmp_task_node->task->period = jiffies;
+    return tmp_task_node;
+}
+
+void task_insert(tcb_node* head, tcb_node* new) {
+    if(head != NULL) {
+        new->next = head->next;
+        head->next = new;
+    }
 }
