@@ -1,8 +1,6 @@
-#include "registers.h"
-#include "sched.h"
-#include "mem.h"
-#include "systick.h"
-#include "main.h"
+#include <kernel.h>
+#include <systick.h>
+#include <main.h>
 
 extern uint32_t _sheap;
 extern uint32_t _eheap;
@@ -22,27 +20,6 @@ tcb_node* curr_task = NULL;
 
 unsigned char switching = 0;
 
-void restore_partial_context(tcb* task) {
-    asm volatile("\
-            add     %[task_addr], %[task_addr], %[context_offset]   \r\n\
-            ldmia   %[task_addr], {r4-r11}                          \r\n\
-        "
-        :[task_addr] "+l" (task)
-        :[context_offset] "I" (__builtin_offsetof(tcb, saved_partial_context))
-        :"memory"
-    );
-} 
-
-void save_partial_context(tcb* task) {
-    asm volatile("\
-            add     %[task_addr], %[task_addr], %[context_offset]   \r\n\
-            stmia   %[task_addr], {r4-r11}                          \r\n\
-        "
-        :[task_addr] "+l" (task)
-        :[context_offset] "I" (__builtin_offsetof(tcb, saved_partial_context))
-        :"memory"
-    );
-}
 
 void os_start(void) {
     /* Initialize heap so you can have dynamic memory allocation */
@@ -72,17 +49,20 @@ void os_tick(void) {
         }
     }
     /* </ghettohax> */
-
     MSP_SAVE(curr_task->task)
     save_partial_context(curr_task->task);
 
-    /* Scheduling algorithm. WARNING: VERY COMPLICATED! */
-    curr_task = curr_task->next; 
-    /* </Scheduling algorithm> */
+    schedule();
 
     restore_partial_context(curr_task->task);
     MSP_RESTORE(curr_task->task)
     asm("bx lr");
+}
+
+void schedule(void) {
+    /* Scheduling algorithm. WARNING: VERY COMPLICATED! */
+    curr_task = curr_task->next; 
+    /* </Scheduling algorithm> */
 }
 
 tcb* create_task(void(*func)(void)) {
@@ -113,6 +93,28 @@ tcb_node* create_task_node(void(*func)(void), uint32_t jiffies) {
     tmp_task_node->task = (tcb*)create_task(func);
     tmp_task_node->task->period = jiffies;
     return tmp_task_node;
+}
+
+void restore_partial_context(tcb* task) {
+    asm volatile("\
+            add     %[task_addr], %[task_addr], %[context_offset]   \r\n\
+            ldmia   %[task_addr], {r4-r11}                          \r\n\
+        "
+        :[task_addr] "+l" (task)
+        :[context_offset] "I" (__builtin_offsetof(tcb, saved_partial_context))
+        :"memory"
+    );
+} 
+
+void save_partial_context(tcb* task) {
+    asm volatile("\
+            add     %[task_addr], %[task_addr], %[context_offset]   \r\n\
+            stmia   %[task_addr], {r4-r11}                          \r\n\
+        "
+        :[task_addr] "+l" (task)
+        :[context_offset] "I" (__builtin_offsetof(tcb, saved_partial_context))
+        :"memory"
+    );
 }
 
 void task_insert(tcb_node* head, tcb_node* new) {

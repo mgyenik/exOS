@@ -1,4 +1,4 @@
-SRCS = clock.c main.c mem.c systick.c sched.c
+SRCS = clock.c main.c mem.c systick.c sched.c svc.c semaphore.c
 ASMSRCS = boot.S
 LD_SCRIPT = stm-baremetal.ld
 
@@ -9,7 +9,7 @@ OBJCOPY=arm-none-eabi-objcopy
 LD=arm-none-eabi-ld
 
 CFLAGS  = -g3 -c -Wall --std=gnu99 -O2
-CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4 -mthumb-interwork
+CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m4 -mthumb-interwork -isystem include
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostdlib -ffreestanding
 
 OBJS = $(ASMSRCS:.S=.o)

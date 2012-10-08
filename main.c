@@ -1,10 +1,13 @@
-#include "registers.h"
-#include "main.h"
-#include "mem.h"
-#include "sched.h"
+#include <kernel.h>
+#include <main.h>
+#include <semaphore.h>
+#include <svc.h>
 
-extern uint32_t _sheap;
-extern uint32_t _eheap;
+semaphore test_sem = {
+    .lock = 0,
+    .count = 0,
+    .owner = NULL
+};
 
 void init_leds(void){
     RCC_AHB1ENR |= (1 << 3);
@@ -22,21 +25,31 @@ void main(void){
 void blink1(void) {
     long delay;
     while(1){
-        delay = 2000000;
-        while(delay--){
-            asm volatile("nop");
+        acquire(&test_sem);
+        for(int i = 10; i; i--) {
+            delay = 2000000;
+            while(delay--){
+                asm volatile("nop");
+            }
+            LED_ODR ^= (1 << RED);
         }
-        LED_ODR ^= (1 << RED);
+        release(&test_sem);
+        svc(SVC_YIELD);
     }
 }
 
 void blink2(void) {
     long delay;
     while(1){
-        delay = 1000000;
-        while(delay--){
-            asm volatile("nop");
+        acquire(&test_sem);
+        for(int i = 10; i; i--) {
+            delay = 1000000;
+            while(delay--){
+                asm volatile("nop");
+            }
+            LED_ODR ^= (1 << BLUE);
         }
-        LED_ODR ^= (1 << BLUE);
+        release(&test_sem);
+        svc(SVC_YIELD);
     }
 }

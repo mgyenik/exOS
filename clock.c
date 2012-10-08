@@ -1,5 +1,5 @@
-#include "registers.h"
-#include "clock.h"
+#include <kernel.h>
+#include <clock.h>
 
 extern uint32_t _etext;
 extern uint32_t _sdata;

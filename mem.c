@@ -1,5 +1,5 @@
-#include "registers.h"
-#include "mem.h"
+#include <registers.h>
+#include <mem.h>
 
 
 mem_region simple_dmem = {.head = NULL,

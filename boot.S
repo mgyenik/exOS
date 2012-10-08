@@ -4,22 +4,22 @@
 .arch armv7e-m
 .section .vectors, "a"
 
-.word _estack
-.word reset
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word oh_god
-.word os_tick
+.word _estack       /* Stack top */
+.word reset         /* Reset */
+.word oh_god        /* NMI */
+.word oh_god        /* Hard Fault */
+.word oh_god        /* Mem Manage Fault */
+.word oh_god        /* Bus Fault */
+.word oh_god        /* Usage Fault */
+.word oh_god        /* Reserved */
+.word oh_god        /* Reserved */
+.word oh_god        /* Reserved */
+.word oh_god        /* Reserved */
+.word svc_handler   /* SVC */
+.word oh_god        /* Debug Monitor */
+.word oh_god        /* Reserved */
+.word oh_god        /* PendSV */
+.word os_tick       /* Systick */
 
 .section .text
 .thumb
