@@ -1,5 +1,4 @@
 #include <kernel.h>
-#include <svc.h>
 
 void svc_handler(void) {
     uint32_t* saved_regs = NULL;

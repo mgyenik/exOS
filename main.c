@@ -1,7 +1,5 @@
 #include <kernel.h>
 #include <main.h>
-#include <semaphore.h>
-#include <svc.h>
 
 semaphore test_sem = {
     .lock = 0,

@@ -1,5 +1,5 @@
 /* STM32F4 Registers and Memory Locations */
-/* Same good ol' file that's in the F4OS project. No need to reinvent the wheel. */
+/* Based on same good ol' file that's in the F4OS project. No need to reinvent the wheel. */
 
 #define NULL 0
 #define svc(x)  asm("svc %[c]"::[c] "I" (x):"memory")

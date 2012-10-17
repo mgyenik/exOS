@@ -123,3 +123,16 @@ void task_insert(tcb_node* head, tcb_node* new) {
         head->next = new;
     }
 }
+
+void task_remove(tcb_node* head, tcb_node* del) {
+    if(head == NULL){
+        return;
+    }
+    tcb_node* walk = head;
+    while(walk->next != NULL) {
+        if(walk->next == del) {
+            walk->next = walk->next->next;
+        }
+    }
+    free(del);
+}

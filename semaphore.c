@@ -1,5 +1,4 @@
 #include <kernel.h>
-#include <semaphore.h>
 
 static int atomic_get_lock(volatile uint8_t* lock) {
     /* Same code I wrote for F4OS */
@@ -25,7 +24,7 @@ static int atomic_get_lock(volatile uint8_t* lock) {
 
 void acquire(semaphore* sem) {
     while(!atomic_get_lock(&sem->lock)) {
-        asm volatile("nop");
+        svc(SVC_YIELD);
     }
     return;
 }

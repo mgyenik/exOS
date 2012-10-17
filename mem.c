@@ -30,3 +30,8 @@ void* alloc(uint32_t size) {
         return NULL;
     }
 }
+
+void free(void* mem) {
+    /* We have no idea how big the stuff is, so whatever, this is a placeholder for a nonshitty heap */
+    return;
+}
