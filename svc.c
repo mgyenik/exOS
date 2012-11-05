@@ -2,8 +2,8 @@
 
 void svc_handler(void) {
     uint32_t* saved_regs = NULL;
-    MSP_SAVE(curr_task->task)
-    save_partial_context(curr_task->task);
+    MSP_SAVE(curr_task)
+    SAVE_PARTIAL_CONTEXT(curr_task->task);
     asm volatile("          \
             mov %[regs], sp \
             "
@@ -13,10 +13,12 @@ void svc_handler(void) {
     switch(svc_number) {
         case SVC_YIELD:
             /* Do normal os_tick stuff */
+            schedule();
             break;
         default:
             break;
     }
-    restore_partial_context(curr_task->task);
-    MSP_RESTORE(curr_task->task);
+    RESTORE_PARTIAL_CONTEXT(curr_task->task);
+    MSP_RESTORE(curr_task)
+    EXCEPT_RETURN()
 }
