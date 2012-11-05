@@ -1,14 +1,35 @@
-#define MSP_SAVE(task) asm("                \
-        str sp, [%[task_sp]]    \r\n        \
-       "                                    \
-       ::[task_sp] "l" (&task->stack_top)   \
+#define MSP_SAVE(ctask) asm("                       \
+        str sp, [%[task_sp]]    \r\n                \
+       "                                            \
+       ::[task_sp] "l" (&ctask->task->stack_top)    \
        :"memory");
 
-#define MSP_RESTORE(task) asm("             \
-        ldr sp, [%[task_sp]]    \r\n        \
-       "                                    \
-       ::[task_sp] "l" (&task->stack_top)   \
+#define MSP_RESTORE(ctask) asm("                    \
+        ldr sp, [%[task_sp]]    \r\n                \
+       "                                            \
+       ::[task_sp] "l" (&ctask->task->stack_top)    \
        :"memory");
+
+#define EXCEPT_RETURN() asm("               \
+        ldr lr, =#0xfffffff9    \r\n        \
+        bx  lr                  \r\n        \
+       "                                    \
+       ::                                   \
+       :"memory");
+
+#define RESTORE_PARTIAL_CONTEXT(task) asm("                                     \
+        ldmia   %[task_addr], {r4-r11}                          \r\n            \
+        "                                                                       \
+        ::[task_addr] "l" (&(task->saved_partial_context))                      \
+        :"r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "memory"             \
+        );
+
+#define SAVE_PARTIAL_CONTEXT(task) asm("                                        \
+        stmia   %[task_addr], {r4-r11}                          \r\n            \
+        "                                                                       \
+        ::[task_addr] "l" (&(task->saved_partial_context))                      \
+        :"memory"                                                               \
+        );
 
 typedef struct partial_context {
     uint32_t r4;
@@ -43,4 +64,5 @@ tcb* create_task(void(*func)(void));
 tcb_node* create_task_node(void(*func)(void), uint32_t jiffies);
 void task_insert(tcb_node* head, tcb_node* new);
 void task_create(void(*func)(void), uint32_t jiffies);
+
 void schedule(void);
