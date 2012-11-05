@@ -5,7 +5,7 @@
 extern uint32_t _sheap;
 extern uint32_t _eheap;
 
-#define STACK_SIZE 100
+#define STACK_SIZE 128
 
 
 struct task_list {
@@ -20,6 +20,9 @@ tcb_node* curr_task = NULL;
 
 unsigned char switching = 0;
 
+void schedule(void) {
+    curr_task = curr_task->next;
+}
 
 void os_start(void) {
     /* Initialize heap so you can have dynamic memory allocation */
@@ -43,26 +46,20 @@ void os_tick(void) {
     if(!switching) {
         if(curr_task != NULL) {
             switching = 1;
-            restore_partial_context(curr_task->task);
-            MSP_RESTORE(curr_task->task)
-            asm("bx lr");
+            RESTORE_PARTIAL_CONTEXT(curr_task->task)
+            MSP_RESTORE(curr_task)
+            EXCEPT_RETURN()
         }
     }
     /* </ghettohax> */
-    MSP_SAVE(curr_task->task)
-    save_partial_context(curr_task->task);
+    MSP_SAVE(curr_task)
+    SAVE_PARTIAL_CONTEXT(curr_task->task)
 
     schedule();
 
-    restore_partial_context(curr_task->task);
-    MSP_RESTORE(curr_task->task)
-    asm("bx lr");
-}
-
-void schedule(void) {
-    /* Scheduling algorithm. WARNING: VERY COMPLICATED! */
-    curr_task = curr_task->next; 
-    /* </Scheduling algorithm> */
+    RESTORE_PARTIAL_CONTEXT(curr_task->task)
+    MSP_RESTORE(curr_task)
+    EXCEPT_RETURN()
 }
 
 tcb* create_task(void(*func)(void)) {
@@ -95,6 +92,7 @@ tcb_node* create_task_node(void(*func)(void), uint32_t jiffies) {
     return tmp_task_node;
 }
 
+/*
 void restore_partial_context(tcb* task) {
     asm volatile("\
             add     %[task_addr], %[task_addr], %[context_offset]   \r\n\
@@ -102,7 +100,7 @@ void restore_partial_context(tcb* task) {
         "
         :[task_addr] "+l" (task)
         :[context_offset] "I" (__builtin_offsetof(tcb, saved_partial_context))
-        :"memory"
+        :"r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "memory"
     );
 } 
 
@@ -116,7 +114,7 @@ void save_partial_context(tcb* task) {
         :"memory"
     );
 }
-
+*/
 void task_insert(tcb_node* head, tcb_node* new) {
     if(head != NULL) {
         new->next = head->next;
