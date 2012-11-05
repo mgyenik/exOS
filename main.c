@@ -1,7 +1,7 @@
 #include <kernel.h>
 #include <main.h>
 
-semaphore test_sem = {
+volatile semaphore test_sem = {
     .lock = 0,
     .count = 0,
     .owner = NULL
