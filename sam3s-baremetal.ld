@@ -8,10 +8,10 @@ MEMORY
 }
 
 /* Highest address of the kernel stack */
-_estack = 0x2000c000;
+_estack = 0x20009ffc;
 /* Heap */
-_sheap = 0x20000000;
-_eheap = 0x2001BFFC;
+_sheap = 0x2000a000;
+_eheap = 0x2000c000;
 
 SECTIONS {
     flash :
