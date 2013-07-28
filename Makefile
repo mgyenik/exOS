@@ -1,6 +1,6 @@
 SRCS = clock.c main.c mem.c systick.c sched.c svc.c semaphore.c
 ASMSRCS = boot.S
-LD_SCRIPT = stm-baremetal.ld
+LD_SCRIPT = sam3s-baremetal.ld
 
 TARGET=out
 
@@ -22,7 +22,7 @@ all: proj
 again: clean all
 
 burn:
-	st-flash write $(TARGET).bin 0x8000000
+	./flash.sh
 
 .c.o:
 	$(CC) $(CFLAGS) $*.c
